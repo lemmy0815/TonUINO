@@ -2158,6 +2158,9 @@ bool readCard(nfcTagObject * nfcTag) {
     if (tempCard.nfcFolderSettings.folder == 0) {
       if (activeModifier != NULL) {
         if (activeModifier->getActive() == tempCard.nfcFolderSettings.mode) {
+          // START: Don't leak memory when removing modifiers  //////////////////////////
+          delete activeModifier;
+          // END: Don't leak memory when removing modifiers  ////////////////////////////
           activeModifier = NULL;
           Serial.println(F("modifier removed"));
           if (isPlaying()) {
