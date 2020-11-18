@@ -21,21 +21,44 @@
 //#define FIVEBUTTONS
 
 // START: Integration of an rotary encoders with push button ( KY-040 )
-#define ROTARYENCODER      // uncomment this line to disable or enable the use of on Rotary Encoder as Volume Control
+   #define ROTARYENCODER      // uncomment this line to disable or enable the use of on Rotary Encoder as Volume Control
 
-#ifdef ROTARYENCODER
-#include <ClickEncoder.h>
-#include <TimerOne.h>
-#define ENCODER_PIN_A    5      // to Rotary Encoder CLK (digital)
-#define ENCODER_PIN_B    6      // to Rotary Encoder DATA (digital)
-#define ENCODER_PUSH_BUTTON A0  // to Rotary Encoder SW (analog)
-                                // other Rotary Encoder PINS GND to GND and +5V to +5V
+   #ifdef ROTARYENCODER
+   #include <ClickEncoder.h>
+   #include <TimerOne.h>
+   #define ENCODER_PIN_A    5      // to Rotary Encoder CLK (digital)
+   #define ENCODER_PIN_B    6      // to Rotary Encoder DATA (digital)
+   #define ENCODER_PUSH_BUTTON A0  // to Rotary Encoder SW (analog)
+                                   // other Rotary Encoder PINS GND to GND and +5V to +5V
 
-ClickEncoder *encoder;
-int16_t EncoderLast, EncoderValue;
+   ClickEncoder *encoder;
+   int16_t EncoderLast, EncoderValue;
 
-#endif
+   #endif
 // END: Integration of an rotary encoders with push button ( KY-040 )
+
+
+// START: Integration of Jackdetect
+
+// uncomment the below line to enable jack detected max volume support
+//#define JACKDETECT
+
+   #ifdef JACKDETECT
+     // Definition des Jackdetect Pins
+     #define jdPin 8
+   #endif
+
+   #ifdef JACKDETECT
+     // Variablen für Prüfung des Kopfhöreranschlusses
+     int jdMaxVolume = 12 ;     // Maximale Lautstärke wenn Kopfhörer angeschlossen ist
+     int jdInitVolume = 10 ;     // Initiale Lautstärke wenn Kopfhörer angeschlossen ist
+     int jackDetectState = HIGH ;         // aktueller Status - ob Kopfhörer angeschlossen ist
+     int lastJackDetectState = HIGH;     // vorhergehender Status - ob Kopfhörer angeschlossen ist
+     int beforeJackdetectVolume = 10;     // Lautstärke bevor Kopfhörer angeschlossen wurden
+     int beforeJackdetectMaxVolume = 10;     // Maximale Lautstärke bevor Kopfhörer angeschlossen wurden
+   #endif
+
+// END: Integration of Jackdetect
 
 static const uint32_t cardCookie = 322417479;
 
@@ -759,6 +782,17 @@ void setup() {
    
 // END: Integration of an rotary encoders with push button ( KY-040 )
 
+   
+// START: Integration of Jackdetect
+   
+  #ifdef JACKDETECT
+  // JackDetect Pin
+  pinMode(jdPin, INPUT_PULLUP);
+  #endif
+
+// END: Integration of Jackdetect
+   
+   
   Serial.begin(115200); // Es gibt ein paar Debug Ausgaben über die serielle Schnittstelle
 
   // Wert für randomSeed() erzeugen durch das mehrfache Sammeln von rauschenden LSBs eines offenen Analogeingangs
@@ -1024,6 +1058,39 @@ void playShortCut(uint8_t shortCut) {
 
 void loop() {
   do {
+
+// START: Integration of Jackdetect
+
+    #ifdef JACKDETECT
+    // Prüfung und Aktualisierung des Köpfhöreranschlusses
+
+     // Aktuellen jackdetect Status einlesen
+     jackDetectState = digitalRead(jdPin);
+
+     // Vergleich zwischen aktuellem und vorhergehendem Status
+     if (jackDetectState != lastJackDetectState) {
+       // Wenn Status sich geändert hat
+       if (jackDetectState == LOW) {
+         // Wenn aktueller Stauts LOW, dann ist der Kopfhörer angeschlossen
+         beforeJackdetectVolume = volume;       // Speichern der Lautstärke bevor Kopfhörer angeschlossen wurden
+         beforeJackdetectMaxVolume = mySettings.maxVolume;     // Speichern der aktuellen Maximalen Lautstärke - bevor Kopfhörer angeschlossen sind
+         mySettings.maxVolume = jdMaxVolume;    // Maximale Lautstärke auf Kopfhörermodus geändert
+         volume = jdInitVolume;    // Aktivieren der Initialen Lautstärke bei Anschluss der Kopfhörer - wenn rauskommentiert, wird die maximale Lautstärke im Kopfhörermodus gesetzt 
+         Serial.println(F("Köpfhörer angeschlossen"));
+       } else {
+         // Wenn aktueller Stauts HIGH, dann ist der Kopfhörer ausgesteckt
+         mySettings.maxVolume = beforeJackdetectMaxVolume;    // Maximale Lautstärke zurücksetzen
+         volume = beforeJackdetectVolume;
+         // volume = mySettings.initVolume; // Alternativ kann man die Initiale Lautstärke beim entfernen des Kopfhörers einstellen lassen
+         Serial.println(F("Köpfhörer ausgesteckt"));
+       }
+     }
+     // Speichern des akuellen Status als letzten Status für den nächsten Loop
+     lastJackDetectState = jackDetectState;
+   #endif
+     
+// END: Integration of Jackdetect
+     
     checkStandbyAtMillis();
     mp3.loop();
 
