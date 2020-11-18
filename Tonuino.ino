@@ -20,6 +20,14 @@
 // uncomment the below line to enable five button support
 //#define FIVEBUTTONS
 
+// START: Integration of NFC Gain //////////////////////////////////////////////////////
+
+   //#define NFCgain_max   // Maximale Empfindlichkeit
+   #define NFCgain_avg   // Mittlere Empfindlichkeit
+   //#define NFCgain_min   // Minimale Empfindlichkeit
+
+// END: Integration of NFC Gain //////////////////////////////////////////////////////
+
 // START: Integration of an rotary encoders with push button ( KY-040 )
    #define ROTARYENCODER      // uncomment this line to disable or enable the use of on Rotary Encoder as Volume Control
 
@@ -826,6 +834,23 @@ void timerIsr() {
 
 void setup() {
 
+// START: Integration of NFC Gain //////////////////////////////////////////////////////
+
+  #ifdef NFCgain_min
+    mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_min);
+    Serial.println(F("=== mfrc522-> RxGain_min === "));
+  #endif
+  #ifdef NFCgain_avg
+    mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_avg);
+    Serial.println(F("=== mfrc522-> RxGain_avg === "));
+  #endif
+  #ifdef NFCgain_max
+    mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max);
+    Serial.println(F("=== mfrc522-> RxGain_max === "));
+  #endif
+
+// END: Integration of NFC Gain //////////////////////////////////////////////////////   
+   
 // START: Integration of an rotary encoders with push button ( KY-040 )
    
   #ifdef ROTARYENCODER
