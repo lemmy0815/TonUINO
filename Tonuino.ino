@@ -905,8 +905,6 @@ void setup() {
   volume = mySettings.initVolume;
   mp3.setVolume(volume);
   mp3.setEq(mySettings.eq - 1);
-  // Fix für das Problem mit dem Timeout (ist jetzt in Upstream daher nicht mehr nötig!)
-  //mySoftwareSerial.setTimeout(10000);
 
   // NFC Leser initialisieren
   SPI.begin();        // Init SPI bus
@@ -2044,8 +2042,7 @@ bool readCard(nfcTagObject * nfcTag) {
   Serial.println(mfrc522.PICC_GetTypeName(piccType));
 
   byte buffer[18];
-  byte size = sizeof(buffer);
-
+  
   // Authenticate using key A
   if ((piccType == MFRC522::PICC_TYPE_MIFARE_MINI ) ||
       (piccType == MFRC522::PICC_TYPE_MIFARE_1K ) ||
