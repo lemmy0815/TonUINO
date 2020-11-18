@@ -20,6 +20,23 @@
 // uncomment the below line to enable five button support
 //#define FIVEBUTTONS
 
+// START: Integration of an rotary encoders with push button ( KY-040 )
+#define ROTARYENCODER      // uncomment this line to disable or enable the use of on Rotary Encoder as Volume Control
+
+#ifdef ROTARYENCODER
+#include <ClickEncoder.h>
+#include <TimerOne.h>
+#define ENCODER_PIN_A    5      // to Rotary Encoder CLK (digital)
+#define ENCODER_PIN_B    6      // to Rotary Encoder DATA (digital)
+#define ENCODER_PUSH_BUTTON A0  // to Rotary Encoder SW (analog)
+                                // other Rotary Encoder PINS GND to GND and +5V to +5V
+
+ClickEncoder *encoder;
+int16_t EncoderLast, EncoderValue;
+
+#endif
+// END: Integration of an rotary encoders with push button ( KY-040 )
+
 static const uint32_t cardCookie = 322417479;
 
 // DFPlayer Mini
@@ -718,7 +735,29 @@ void waitForTrackToFinish() {
   } while (isPlaying());
 }
 
+// START: Integration of an rotary encoders with push button ( KY-040 )
+
+#ifdef ROTARYENCODER
+// Interrupt Service Routine für Timer1
+void timerIsr() {
+  encoder->service();
+}
+#endif
+
+// END: Integration of an rotary encoders with push button ( KY-040 )
+
 void setup() {
+
+// START: Integration of an rotary encoders with push button ( KY-040 )
+   
+  #ifdef ROTARYENCODER
+    encoder = new ClickEncoder(ENCODER_PIN_A, ENCODER_PIN_B, ENCODER_PUSH_BUTTON);
+    Timer1.initialize(1000);
+    Timer1.attachInterrupt(timerIsr);
+    EncoderLast = -1;
+  #endif
+   
+// END: Integration of an rotary encoders with push button ( KY-040 )
 
   Serial.begin(115200); // Es gibt ein paar Debug Ausgaben über die serielle Schnittstelle
 
@@ -802,6 +841,44 @@ void readButtons() {
   buttonFour.read();
   buttonFive.read();
 #endif
+
+// START: Integration of an rotary encoders with push button ( KY-040 )
+
+   #ifdef ROTARYENCODER
+  EncoderValue += encoder->getValue();
+
+  if (EncoderValue != EncoderLast) {
+    if (EncoderValue > EncoderLast) {
+      volumeUpButton();
+    }
+    if (EncoderValue < EncoderLast){
+      volumeDownButton();
+    }
+    EncoderLast = EncoderValue;
+    Serial.print(F("Encoder Value: "));
+    Serial.println(EncoderValue);
+  }
+
+  ClickEncoder::Button EncoderButton = encoder->getButton();
+  if (EncoderButton != ClickEncoder::Open){
+    Serial.print(F("EncoderButton: "));
+    Serial.print("Button: ");
+    #define VERBOSECASE(label) case label: Serial.println(#label); break;
+    switch (EncoderButton) {
+      VERBOSECASE(ClickEncoder::Pressed);
+      VERBOSECASE(ClickEncoder::Held)
+        VERBOSECASE(ClickEncoder::Released)
+        VERBOSECASE(ClickEncoder::Clicked)
+    case ClickEncoder::DoubleClicked:
+      Serial.println("ClickEncoder::DoubleClicked");
+      encoder->setAccelerationEnabled(!encoder->getAccelerationEnabled());
+      Serial.print("  Acceleration is ");
+      Serial.println((encoder->getAccelerationEnabled()) ? "enabled" : "disabled");
+    }
+  }
+#endif
+
+// END: Integration of an rotary encoders with push button ( KY-040 )
 }
 
 void volumeUpButton() {
