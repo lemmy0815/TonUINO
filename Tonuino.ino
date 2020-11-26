@@ -2042,7 +2042,8 @@ bool readCard(nfcTagObject * nfcTag) {
   Serial.println(mfrc522.PICC_GetTypeName(piccType));
 
   byte buffer[18];
-  
+  byte size = sizeof(buffer);
+   
   // Authenticate using key A
   if ((piccType == MFRC522::PICC_TYPE_MIFARE_MINI ) ||
       (piccType == MFRC522::PICC_TYPE_MIFARE_1K ) ||
