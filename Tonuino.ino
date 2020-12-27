@@ -21,7 +21,6 @@
 //#define FIVEBUTTONS
 
 // uncomment the below line to enable reset button for Hörbuch mode
-
 // START: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
 #define RESET_BUTTONS
 // END: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
@@ -776,14 +775,6 @@ bool ignoreDownButton = false;
 bool ignoreButtonFour = false;
 bool ignoreButtonFive = false;
 #endif
-
-// START: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
-// assign reset buttons for longpress
-#ifdef RESET_BUTTONS
-Button ResetButton1(buttonUp);
-Button ResetButton2(buttonDown);
-#endif
-// END: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
 
 /// Funktionen für den Standby Timer (z.B. über Pololu-Switch oder Mosfet)
 
@@ -1545,10 +1536,10 @@ lastDetectedTrack = currentDetectedTrack;
      
 // START: Integration of RESET_BUTTONS //////////////////////////////////////////////////////     
 #ifdef RESET_BUTTONS
-    if (ResetButton1.pressedFor(LONG_PRESS) && ResetButton2.pressedFor(LONG_PRESS)) {
+    if (upButton.pressedFor(LONG_PRESS) && downButton.pressedFor(LONG_PRESS)) {
        do {
         readButtons();
-      } while (ResetButton1.isPressed() || ResetButton2.isPressed());
+      } while (upButton.isPressed() || downButton.isPressed());
       readButtons();
       if (myFolder->mode == 5) {
           Serial.print(F("Hörbuch wird von vorne abgespielt"));
