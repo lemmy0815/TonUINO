@@ -20,6 +20,13 @@
 // uncomment the below line to enable five button support
 //#define FIVEBUTTONS
 
+// uncomment the below line to enable reset button for Hörbuch mode
+
+// START: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
+#define RESET_BUTTONS
+// END: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
+
+
 // START: Integration of NFC Gain //////////////////////////////////////////////////////
 
    //#define NFCgain_max   // Maximale Empfindlichkeit
@@ -769,6 +776,14 @@ bool ignoreDownButton = false;
 bool ignoreButtonFour = false;
 bool ignoreButtonFive = false;
 #endif
+
+// START: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
+// assign reset buttons for longpress
+#ifdef RESET_BUTTONS
+Button ResetButton1(buttonUp);
+Button ResetButton2(buttonDown);
+#endif
+// END: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
 
 /// Funktionen für den Standby Timer (z.B. über Pololu-Switch oder Mosfet)
 
@@ -1527,6 +1542,28 @@ lastDetectedTrack = currentDetectedTrack;
       ignorePauseButton = true;
     }
 
+     
+// START: Integration of RESET_BUTTONS //////////////////////////////////////////////////////     
+#ifdef RESET_BUTTONS
+    if (ResetButton1.pressedFor(LONG_PRESS) && ResetButton2.pressedFor(LONG_PRESS)) {
+       do {
+        readButtons();
+      } while (ResetButton1.isPressed() || ResetButton2.isPressed());
+      readButtons();
+      if (myFolder->mode == 5) {
+          Serial.print(F("Hörbuch wird von vorne abgespielt"));
+          currentTrack = 1;
+          EEPROM.update(myFolder->folder, currentTrack);
+          mp3.playFolderTrack(myFolder->folder, currentTrack);
+        }
+      else
+       {
+             Serial.print(F("Rücksetzen nur im Hörbuchmodus!"));
+       }
+    }
+#endif
+// END: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
+     
     if (upButton.pressedFor(LONG_PRESS)) {
 #ifndef FIVEBUTTONS
       if (isPlaying()) {
