@@ -25,6 +25,9 @@
 #define RESET_BUTTONS
 // END: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
 
+// START: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
+#define PUSH_ON_OFF
+// END: Integration of RESET_BUTTONS //////////////////////////////////////////////////////
 
 // START: Integration of NFC Gain //////////////////////////////////////////////////////
 
@@ -760,6 +763,8 @@ MFRC522::StatusCode status;
 #endif
 
 #define LONG_PRESS 1000
+#define LONGER_PRESS 2000
+//#define LONGEST_PRESS 5000
 
 Button pauseButton(buttonPause);
 Button upButton(buttonUp);
@@ -1533,6 +1538,16 @@ lastDetectedTrack = currentDetectedTrack;
       ignorePauseButton = true;
     }
 
+// START: Integration of PUSH_ON_OFF ////////////////////////////////////////////////////// 
+#ifdef PUSH_ON_OFF
+  else if (pauseButton.pressedFor(LONGER_PRESS) && 
+          (!upButton.isPressed() || !downButton.isPressed()) && 
+          ignorePauseButton == false) {
+    ignorePauseButton = true;
+    shutDown();
+  }
+#endif
+// START: Integration of PUSH_ON_OFF //////////////////////////////////////////////////////      
      
 // START: Integration of RESET_BUTTONS //////////////////////////////////////////////////////     
 #ifdef RESET_BUTTONS
